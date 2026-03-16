@@ -3,10 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="theme-color" content="#3b82f6">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Planning Pilot">
     <title>Planning Progress Pilot</title>
     
-    <!-- Estilos CSS -->
+    <!-- MANIFEST INCORPORADO PARA QUE SEA INSTALABLE -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjogIlBsYW5uaW5nIFByb2dyZXNzIFBpbG90IiwgInNob3J0X25hbWUiOiAiUGxhbm5pbmciLCAic3RhcnRfdXJsIjogIi4iLCAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwgImJhY2tncm91bmRfY29sb3IiOiAiIzBmMTcyYSIsICJ0aGVtZV9jb2xvciI6ICIjM2I4MmY2In0=">
+    
+    <!-- ICONO BASE64 (SIMPLE PERO FUNCIONAL) -->
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABjSURBVFhH7c0xCoAwEETRvf+hLgSxMbOx4SY2FoGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYHx38HdO8QnHSIxUJcAAAAASUVORK5CYII=">
+    <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAABjSURBVFhH7c0xCoAwEETRvf+hLgSxMbOx4SY2FoGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYGBgYHx38HdO8QnHSIxUJcAAAAASUVORK5CYII=">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;700&family=Outfit:wght@800;900&display=swap');
         
@@ -24,10 +33,10 @@
             font-family: 'Lexend', sans-serif;
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: var(--text-primary); min-height: 100vh; padding: 20px; line-height: 1.6;
+            -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
         }
         
         .container { max-width: 1400px; margin: 0 auto; }
-        
         header { text-align: center; margin-bottom: 40px; animation: slideDown 0.6s ease-out; }
         
         h1 {
@@ -37,7 +46,6 @@
         }
         
         .subtitle { color: var(--text-secondary); font-size: 1.1rem; font-weight: 300; }
-        
         .grades-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; margin-bottom: 40px; }
         
         .grade-card {
@@ -82,12 +90,10 @@
         }
         .stage-box:hover { transform: scale(1.05); border-color: var(--text-secondary); background: var(--bg-card); }
         
-        /* Estados de la etapa */
         .stage-box.completed { background: var(--accent-green); color: white; border-color: var(--accent-green); }
         .stage-box.completed:hover { opacity: 0.9; }
         
         .stage-box.current { border-color: var(--accent-yellow); background: rgba(251, 191, 36, 0.2); }
-        /* Pista visual para indicar que se puede completar */
         .stage-box.current::after {
             content: '✓'; position: absolute; top: -5px; right: -5px; background: var(--accent-yellow);
             color: #000; font-size: 0.7rem; font-weight: bold; border-radius: 50%; width: 18px; height: 18px;
@@ -255,37 +261,30 @@
                 const box = document.createElement('div');
                 box.className = 'stage-box';
                 
-                // Asignar clases visuales
                 if (stage.id < progress.currentStage) box.classList.add('completed');
                 else if (stage.id === progress.currentStage) box.classList.add('current');
                 
                 box.innerHTML = `<div class="stage-number">${stage.id}</div><div class="stage-name">${stage.name}</div>`;
-                
-                // --- LÓGICA DE SELECCIÓN MEJORADA ---
                 box.onclick = () => handleStageClick(stage.id);
                 
                 grid.appendChild(box);
             });
         }
         
-        // --- NUEVA FUNCIÓN PARA MANEJAR EL CLIC EN ETAPAS ---
         function handleStageClick(stageId) {
             const progress = getProgress(currentGradeId);
             
-            // 1. Si tocas la etapa ACTUAL (amarilla): Marcar como completada
             if (stageId === progress.currentStage) {
                 if (confirm(`¿Marcar Etapa ${stageId} (${aoaStages[stageId-1].name}) como COMPLETADA?`)) {
                     advanceStage();
                 }
             }
-            // 2. Si tocas una etapa PASADA (verde): Regresar/Repasar
             else if (stageId < progress.currentStage) {
                 if (confirm(`Esta etapa ya fue completada. ¿Volver a la Etapa ${stageId} para repasar?`)) {
                     updateProgress(currentGradeId, { currentStage: stageId });
-                    openGradeModal(currentGradeId); // Refrescar
+                    openGradeModal(currentGradeId);
                 }
             }
-            // 3. Si tocas una etapa FUTURA (gris): Bloqueada
             else {
                 alert('⚠️ Debes completar las etapas anteriores primero.');
             }
@@ -294,11 +293,9 @@
         function advanceStage() {
             const progress = getProgress(currentGradeId);
             if (progress.currentStage < 6) {
-                // Avanzar a la siguiente etapa
                 updateProgress(currentGradeId, { currentStage: progress.currentStage + 1 });
-                openGradeModal(currentGradeId); // Refrescar modal
+                openGradeModal(currentGradeId);
             } else {
-                // Si estás en la etapa 6, marcar lección completa
                 markLessonComplete();
             }
         }
@@ -335,9 +332,8 @@
         function markLessonComplete() {
             const progress = getProgress(currentGradeId);
             if (progress.currentStage < 6) {
-                advanceStage(); // Si no estamos en la 6, simplemente avanza etapa
+                advanceStage();
             } else {
-                // Marcar lección completa
                 const completedLessons = [...progress.completedLessons, progress.currentLesson];
                 const nextLesson = progress.currentLesson < 5 ? progress.currentLesson + 1 : 1;
                 updateProgress(currentGradeId, { completedLessons, currentLesson: nextLesson, currentStage: 1 });
@@ -379,6 +375,17 @@
             }
         }
         
+        // Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', e => self.skipWaiting());
+                self.addEventListener('activate', e => e.waitUntil(clients.claim()));
+                self.addEventListener('fetch', e => e.respondWith(fetch(e.request).catch(() => new Response('Offline'))));
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(err => console.log('SW error', err));
+        }
+
         // Iniciar
         document.getElementById('gradeModal').onclick = e => { if(e.target.id === 'gradeModal') closeModal(); };
         initializeData();
